@@ -9,13 +9,22 @@ class TerraMod:
 
   def __init__(self,fn):
     self.filename = fn
-    x,y,z,vp,vs = read_model(fn)
+    self.lon, self.lat, self.r, \
+    self.vp, self.vs, self.rho, \
+    self.p, self.t, self.c, \
+    self.qp, self.qs, \
+    self.barycentres, \
+    self.triangles, \
+    self.cartpts = read_model(fn)
     
 
 def read_model(fn):
 
   # open file for reading
   f = open(fn,'rb')
+  
+  # initiate some BS values
+  x=y=r=vp=vs=rho=p=t=c=qp=qs=barycentres=triangles=cartpts = np.empty
   
   # USEFUL FUNCTION 
   def skip(f):
@@ -66,7 +75,7 @@ def read_model(fn):
     # READ VARIABLE STRING
     skip(f)
     var_string = f.read(10).strip()
-    print 'reading:', var_string
+#     print 'reading:', var_string
     skip(f)
     
     if ( var_string == 'VP' ):
@@ -120,7 +129,7 @@ def read_model(fn):
   # close_file  
   f.close()
   
-  return x,y,r,vp,vs
+  return x,y,r,vp,vs,rho,p,t,c,qp,qs,barycentres,triangles,cartpts
 
 
 def plot_slice(m,r):
