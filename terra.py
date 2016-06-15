@@ -2,16 +2,14 @@
 
 # import argparse
 import numpy as np
+import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
 
+class TerraMod:
 
-# class TerraMod:
-# 
-#   def __init__(self,fn,x,y,r,vp,vs,rho,p,t,c,
-#                     qp,qc,barycentre,triangles,cart_point):
-#     self.fn = fn
-#     self.x = x
-#     self.y = y
-#     self.r = r
+  def __init__(self,fn):
+    self.filename = fn
+    x,y,z,vp,vs = read_model(fn)
     
 
 def read_model(fn):
@@ -73,47 +71,47 @@ def read_model(fn):
     
     if ( var_string == 'VP' ):
       skip(f)
-      vp = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      vp = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
       skip(f)
     elif ( var_string == 'VS' ):
       skip(f)
-      vs = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      vs = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
       skip(f)
     elif ( var_string == 'RHO' ):
       skip(f)
-      rho = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      rho = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
       skip(f)
     elif ( var_string == 'P' ):
       skip(f)
-      p = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      p = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
       skip(f)
     elif ( var_string == 'T' ):
       skip(f)
-      t = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      t = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
       skip(f)
     elif ( var_string == 'C' ):
       skip(f)
-      c = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      c = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
       skip(f)
     elif ( var_string == 'QP' ):
       skip(f)
-      qp = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      qp = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
       skip(f)
     elif ( var_string == 'QS' ):
       skip(f)
-      qs = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      qs = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
       skip(f)
     elif ( var_string == 'BARYCENTRE' ):
       skip(f)
-      barycentres = np.fromfile(f, dtype='float64', count=npts*nlayers)
+      barycentres = np.fromfile(f, dtype='float64', count=npts*nlayers).reshape(npts*3,nlayers)
       skip(f)
     elif ( var_string == 'TRIANGLES' ):
       skip(f)
-      triangles = np.fromfile(f, dtype='int32', count=npts*nlayers)
+      triangles = np.fromfile(f, dtype='int32', count=npts*nlayers).reshape(npts*3,nlayers)
       skip(f)
     elif ( var_string == 'CART_POINT' ):
       skip(f)
-      cartpts = np.fromfile(f, dtype='float64', count=npts*nlayers)
+      cartpts = np.fromfile(f, dtype='float64', count=npts*nlayers).reshape(npts*3,nlayers)
       skip(f)
     else:
       # we're either done or something's wrong
@@ -122,9 +120,14 @@ def read_model(fn):
   # close_file  
   f.close()
   
-  return x,y,r,vp
+  return x,y,r,vp,vs
 
-     
+
+def plot_slice(m,r):
+  ax = plt.axes(projection=ccrs.PlateCarree())
+  ax.coastlines()
+  ax.imshow
+
 
 
 #   
