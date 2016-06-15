@@ -1,18 +1,20 @@
 #!/usr/bin/env
 
 # import argparse
-import numpy
+import numpy as np
 
-# parser = argparse.ArgumentParser(description="Read terra model to numpy array")
-# parser.add_argument("File", help="Name of terra model file in fortran binary format")
+
+# class TerraMod:
 # 
-# call
+#   def __init__(self,fn,x,y,r,vp,vs,rho,p,t,c,
+#                     qp,qc,barycentre,triangles,cart_point):
+#     self.fn = fn
+#     self.x = x
+#     self.y = y
+#     self.r = r
+    
 
-# Define function to read terra file to numpy array
-# Sanity checks are not built-in yet so take care to check
-# the files are read in sensibly!
-
-def read_terra_to_model(fn):
+def read_model(fn):
 
   # open file for reading
   f = open(fn,'rb')
@@ -60,16 +62,67 @@ def read_terra_to_model(fn):
   r = np.fromfile(f, dtype='float64', count=nlayers)
   skip(f)
   
-  ## NOW LOOP THROUGH UNTIL END OF FILE
+  ## NOW LOOP THROUGH AND READ DATA
   while True:
+  
     # READ VARIABLE STRING
     skip(f)
-    var_string = f.read(10)
+    var_string = f.read(10).strip()
+    print 'reading:', var_string
     skip(f)
     
-    
+    if ( var_string == 'VP' ):
+      skip(f)
+      vp = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      skip(f)
+    elif ( var_string == 'VS' ):
+      skip(f)
+      vs = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      skip(f)
+    elif ( var_string == 'RHO' ):
+      skip(f)
+      rho = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      skip(f)
+    elif ( var_string == 'P' ):
+      skip(f)
+      p = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      skip(f)
+    elif ( var_string == 'T' ):
+      skip(f)
+      t = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      skip(f)
+    elif ( var_string == 'C' ):
+      skip(f)
+      c = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      skip(f)
+    elif ( var_string == 'QP' ):
+      skip(f)
+      qp = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      skip(f)
+    elif ( var_string == 'QS' ):
+      skip(f)
+      qs = np.fromfile(f, dtype='float32', count=npts*nlayers)
+      skip(f)
+    elif ( var_string == 'BARYCENTRE' ):
+      skip(f)
+      barycentres = np.fromfile(f, dtype='float64', count=npts*nlayers)
+      skip(f)
+    elif ( var_string == 'TRIANGLES' ):
+      skip(f)
+      triangles = np.fromfile(f, dtype='int32', count=npts*nlayers)
+      skip(f)
+    elif ( var_string == 'CART_POINT' ):
+      skip(f)
+      cartpts = np.fromfile(f, dtype='float64', count=npts*nlayers)
+      skip(f)
+    else:
+      # we're either done or something's wrong
+      break
+
+  # close_file  
+  f.close()
   
-  return x,y
+  return x,y,r,vp
 
      
 
