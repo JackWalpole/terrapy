@@ -31,7 +31,7 @@ class TerraMod:
         # x=y=r=vp=vs=rho=p=t=c=qp=qs=barycentres=triangles=cartpts = np.empty
   
         # USEFUL FUNCTION 
-        def skip(f):
+        def __skip(f):
             # function to skip past the 4 byte chunks
             # at the start and end of records in the
             # unformatted fortran files 
@@ -44,77 +44,77 @@ class TerraMod:
         ##############################
 
         ## GET VERSION STRING
-        skip(f)
+        __skip(f)
         version_string = f.read(30)
-        skip(f)
+        __skip(f)
 
         # GET NUMBER OF POINTS
-        skip(f)
+        __skip(f)
         npts = np.fromfile(f, dtype='int32', count=1)[0]
         self.npts = npts
-        skip(f)
+        __skip(f)
 
         ## POPULATE LON ARRAY
-        skip(f)
+        __skip(f)
         self.lon = np.fromfile(f, dtype='float64', count=npts)
-        skip(f)
+        __skip(f)
 
         ## POPULATE LAT ARRAY
-        skip(f)
+        __skip(f)
         self.lat = np.fromfile(f, dtype='float64', count=npts)
-        skip(f)
+        __skip(f)
 
         ## GET NUMBER OF LAYERS
-        skip(f)
+        __skip(f)
         nlayers = np.fromfile(f, dtype='int32', count=1)[0]
         self.nlayers = nlayers
-        skip(f)
+        __skip(f)
 
         ## GET RADII ARRAY
-        skip(f)
+        __skip(f)
         self.r = np.fromfile(f, dtype='float64', count=nlayers)
-        skip(f)
+        __skip(f)
 
         ## NOW LOOP THROUGH AND READ DATA
         while True:
 
             # READ VARIABLE STRING
-            skip(f)
+            __skip(f)
             var_string = f.read(10).strip()
-            skip(f)
+            __skip(f)
 
             if var_string == b'VP':
-                skip(f)
+                __skip(f)
                 self.vp = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
-                skip(f)
+                __skip(f)
             elif var_string == b'VS':
-                skip(f)
+                __skip(f)
                 self.vs = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
-                skip(f)
+                __skip(f)
             elif var_string == b'RHO':
-                skip(f)
+                __skip(f)
                 self.rho = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
-                skip(f)
+                __skip(f)
             elif var_string == b'P':
-                skip(f)
+                __skip(f)
                 self.p = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
-                skip(f)
+                __skip(f)
             elif var_string == b'T':
-                skip(f)
+                __skip(f)
                 self.t = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
-                skip(f)
+                __skip(f)
             elif var_string == b'C':
-                skip(f)
+                __skip(f)
                 self.c = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
-                skip(f)
+                __skip(f)
             elif var_string == b'QP':
-                skip(f)
+                __skip(f)
                 self.qp = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
-                skip(f)
+                __skip(f)
             elif var_string == b'QS':
-                skip(f)
+                __skip(f)
                 self.qs = np.fromfile(f, dtype='float32', count=npts*nlayers).reshape(nlayers,npts)
-                skip(f)
+                __skip(f)
             else:
                 # we're either done or something's wrong
                 break
@@ -145,13 +145,58 @@ class TerraMod:
         if 'cmap' not in kwargs:
             kwargs['cmap'] = 'RdYlBu'
         idx = find_nearest_index(self.r, kwargs['radius'])
-        bmap = Basemap(projection=kwargs['projection'], lon_0=kwargs['lon_0'], resolution=kwargs['resolution'])
+        bmap = Basemap(projection=kwargs['projection'], 
+                       lon_0=kwargs['lon_0'], 
+                       resolution=kwargs['resolution'])
         x, y = bmap((self.lon+3600)%360, self.lat)
         bmap.pcolor(x, y, kwargs['vals'][idx], tri=True, cmap=kwargs['cmap'])
         bmap.drawcoastlines()
         bmap.colorbar()
-        plt.show()
+        if kwargs['return_ax'] is not None and kwargs['return_ax'] == True:
+            return bmap
+        else:
+            plt.show()
+        
+    # def _plot_coastlines(self, ax, **kwargs):
+    #     bmap = Basemap(projection=kwargs['projection'],
+    #                    lon_0=kwargs['lon_0'],
+    #                    resolution=kwargs['resolution'])
+    #     return
+            
     
+    def _plot_field(self, ax, **kwargs):
+        if 'vals' not in kwargs:
+            raise Exception('vals must be specified, e.g., vals = self.vp')
+        if 'radius' not in kwargs:
+            default_radius = 3570
+            kwargs['radius'] = default_radius
+            # print('radius defaulting to ' + str(default_radius))
+        if 'projection' not in kwargs:
+            default_projection = 'kav7'
+            kwargs['projection'] = default_projection
+        if 'lon_0' not in kwargs:
+            kwargs['lon_0'] = 180
+        if 'resolution' not in kwargs:
+            kwargs['resolution'] = 'c'
+        if 'cmap' not in kwargs:
+            kwargs['cmap'] = 'RdYlBu'
+        idx = find_nearest_index(self.r, kwargs['radius'])
+        bmap = Basemap(projection=kwargs['projection'], 
+                       lon_0=kwargs['lon_0'], 
+                       resolution=kwargs['resolution'])
+        x, y = bmap((self.lon+3600)%360, self.lat)
+        bmap.pcolor(x, y, kwargs['vals'][idx], tri=True, cmap=kwargs['cmap'])
+        bmap.drawcoastlines()
+        bmap.colorbar()
+        return
+        
+    def _plot_markers(self, ax, **kwargs):
+        pass
+        
+    def _plot_lines(self, ax, **kwargs):
+        pass
+        
+        
     # def plot_vs(self,radius=3570):
     #     idx = find_nearest_index(self.r, radius)
     #     map = Basemap(projection='mill',lon_0=180,resolution='c')
